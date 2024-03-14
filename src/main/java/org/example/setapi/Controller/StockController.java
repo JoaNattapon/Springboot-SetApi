@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
 
 @RestController
 public class StockController {
@@ -23,5 +22,16 @@ public class StockController {
             @RequestParam String adjustedPriceFlag) {
 
         return stockService.findSingleStock(symbol, startDate, adjustedPriceFlag);
+    }
+
+    @GetMapping("/percentgainloss")
+    public float percentGainLoss(
+
+            @RequestParam String symbol,
+            @RequestParam String startDate,
+            @RequestParam String endDate,
+            @RequestParam String adjustedPriceFlag) {
+
+        return stockService.findLossOrGain(symbol, startDate, endDate, adjustedPriceFlag);
     }
 }
