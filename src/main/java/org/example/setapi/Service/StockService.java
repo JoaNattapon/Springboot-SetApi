@@ -22,6 +22,15 @@ public class StockService {
     private String apiKey;
     private final RestTemplate templates = new RestTemplate();
 
+    private static float percentageGain(float one, float two) {
+
+        if (one != 0) {
+
+            return ((two - one) / one) * 100;
+        }
+        return  Float.POSITIVE_INFINITY;
+    }
+
     // Find one particular stock's information.
     public SingleStock[] findSingleStock (String symbol, String startDate, String adjustedPriceFlag) {
 
@@ -57,34 +66,30 @@ public class StockService {
             responseOneJson = objectMapper.writeValueAsString(responseOne);
             responseTwoJson = objectMapper.writeValueAsString(responseTwo);
 
+            try {
+
+                JsonNode jsonNodeOne = objectMapper.readTree(responseOneJson);
+                float closeValueOne = jsonNodeOne.get(0).get("close").floatValue();
+
+                JsonNode jsonNodeTwo = objectMapper.readTree(responseTwoJson);
+                float closeValueTwo = jsonNodeTwo.get(0).get("close").floatValue();
+                return percentageGain(closeValueOne, closeValueTwo);
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+                System.out.println("OOP :p Something went wrong !");
+                return -1;
+            }
+
+
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Fail to serialize JSON . . .");
             return -1;
         }
-        try {
-
-            JsonNode jsonNodeOne = objectMapper.readTree(responseOneJson);
-            float closeValueOne = jsonNodeOne.get(0).get("close").floatValue();
-
-            JsonNode jsonNodeTwo = objectMapper.readTree(responseTwoJson);
-            float closeValueTwo = jsonNodeTwo.get(0).get("close").floatValue();
-            return percentageGain(closeValueOne, closeValueTwo);
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-            System.out.println("OOP :p Something went wrong !");
-            return -1;
-        }
     }
 
-    private static float percentageGain(float one, float two) {
 
-        if (one != 0) {
 
-            return ((two - one) / one) * 100;
-        }
-        return  Float.POSITIVE_INFINITY;
-    }
 }
