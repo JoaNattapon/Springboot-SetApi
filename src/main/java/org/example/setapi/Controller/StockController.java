@@ -1,6 +1,7 @@
 package org.example.setapi.Controller;
 
 import org.example.setapi.Model.SingleStock;
+import org.example.setapi.Model.StockList;
 import org.example.setapi.Service.StockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,4 +35,16 @@ public class StockController {
 
         return stockService.findLossOrGain(symbol, startDate, endDate, adjustedPriceFlag);
     }
+
+    @GetMapping("/allstock")
+    public StockList[] getAllStock(
+
+            @RequestParam String securityType,
+            @RequestParam String date,
+            @RequestParam String adjustedPriceFlag) {
+
+        return stockService.findAllStock(securityType, date, adjustedPriceFlag);
+    }
+
+
 }

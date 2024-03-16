@@ -3,6 +3,7 @@ package org.example.setapi.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.setapi.Model.SingleStock;
+import org.example.setapi.Model.StockList;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -21,6 +22,12 @@ public class StockService {
 
     @Value("${api.key}")
     private String apiKey;
+
+    @Value("${first.endpoint}")
+    private String firstEndpoint;
+
+    @Value("${second.endpoint}")
+    private String secondEndpoint;
     private final RestTemplate templates = new RestTemplate();
 
     private static float percentageGain(float one, float two) {
@@ -61,12 +68,12 @@ public class StockService {
         HttpHeaders headers = new HttpHeaders();
         headers.set("api-key", apiKey);
 
-        String endpoint = "https://www.setsmart.com/api/listed-company-api/eod-price-by-symbol";
-        String url = endpoint + "?symbol=" + symbol + "&startDate=" + startDate + "&adjustedPriceFlag=" + adjustedPriceFlag;
+        String endpoint = firstEndpoint;
+        String endpointParams = endpoint + "?symbol=" + symbol + "&startDate=" + startDate + "&adjustedPriceFlag=" + adjustedPriceFlag;
 
         ResponseEntity<SingleStock[]> responseEntity = templates.exchange (
 
-          url,
+          endpointParams,
           HttpMethod.GET,
           new HttpEntity<>(headers),
           SingleStock[].class
@@ -76,7 +83,7 @@ public class StockService {
     }
 
     // Compare One particular stock in selected time period.
-    public float findLossOrGain (String symbol, String startDate, String endDate, String adjustedPriceFlag ) {
+    public float findLossOrGain (String symbol, String startDate, String endDate, String adjustedPriceFlag) {
 
         Object[] responseOne = findSingleStock(symbol, startDate, adjustedPriceFlag);
         Object[] responseTwo = findSingleStock(symbol, endDate, adjustedPriceFlag);
@@ -117,6 +124,23 @@ public class StockService {
         }
     }
 
+    public StockList[] findAllStock (String securityType, String date, String adjustedPriceFlag) {
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("api-key", apiKey);
+
+        String endpoint = secondEndpoint;
+        String endpointParams = endpoint + "?securityType=" + securityType + "&date=" + date + "&adjustedPriceFlag=" + adjustedPriceFlag;
+
+        ResponseEntity<StockList[]> responseEntity = templates.exchange(
+
+            endpointParams,
+            HttpMethod.GET,
+            new HttpEntity<>(headers),
+            StockList[].class
+        );
+
+        return responseEntity.getBody();
+    }
 
 }
