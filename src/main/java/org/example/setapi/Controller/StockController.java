@@ -25,7 +25,7 @@ public class StockController {
     }
 
     @GetMapping("/percentgainloss")
-    public float percentGainLoss(
+    public double percentGainLoss(
 
             @RequestParam String symbol,
             @RequestParam String startDate,

@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 
 import org.springframework.http.HttpHeaders;
 
+import java.text.DecimalFormat;
 import java.util.Arrays;
 
 
@@ -24,11 +25,34 @@ public class StockService {
 
     private static float percentageGain(float one, float two) {
 
+        DecimalFormat df = new DecimalFormat("0.00");
+
         if (one != 0) {
 
-            return ((two - one) / one) * 100;
+            float result = ((two - one) / one) * 100;
+            return Float.parseFloat(df.format(result));
         }
-        return  Float.POSITIVE_INFINITY;
+        return  Float.parseFloat(df.format(Float.POSITIVE_INFINITY));
+    }
+
+    private void percentageGainString(float value, String symbol) {
+
+        if (value >= 0) {
+            System.out.println("""
+                    
+                    %.2s is gains at %.2f%% in your selected period.
+                    
+                    That's nice...
+                """.formatted(symbol,value));
+        } else {
+            System.out.println("""
+                    
+                    %.2s is loss at %.2f%% in your selected period.
+                    
+                    That's awful man ToT.
+                """.formatted(symbol,value));
+        }
+
     }
 
     // Find one particular stock's information.
@@ -73,7 +97,10 @@ public class StockService {
 
                 JsonNode jsonNodeTwo = objectMapper.readTree(responseTwoJson);
                 float closeValueTwo = jsonNodeTwo.get(0).get("close").floatValue();
-                return percentageGain(closeValueOne, closeValueTwo);
+
+                float output = percentageGain(closeValueOne, closeValueTwo);
+
+                return output;
 
             } catch (Exception e) {
 
