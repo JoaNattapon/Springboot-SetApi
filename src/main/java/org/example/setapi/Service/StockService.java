@@ -14,7 +14,11 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -140,7 +144,24 @@ public class StockService {
             StockList[].class
         );
 
-        return responseEntity.getBody();
+        StockList[] apiResponse = responseEntity.getBody();
+
+        if (apiResponse != null){
+
+            return Arrays.stream(apiResponse)
+                    .filter(res -> res.getDividendYield() > 5.0)
+                    .map(res -> {
+                        StockList filteredStock = new StockList();
+                        filteredStock.setSymbol(res.getSymbol());
+                        filteredStock.setDividendYield(res.getDividendYield());
+
+                        return filteredStock;
+                    })
+                    .toArray(StockList[]::new);
+        } else {
+
+            return null;
+        }
     }
 
 }

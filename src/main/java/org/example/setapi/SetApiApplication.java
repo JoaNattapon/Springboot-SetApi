@@ -10,7 +10,9 @@ import org.springframework.web.client.RestTemplate;
 public class SetApiApplication {
 
     public static void main(String[] args) {
+
         SpringApplication.run(SetApiApplication.class, args);
+
     }
 
 
