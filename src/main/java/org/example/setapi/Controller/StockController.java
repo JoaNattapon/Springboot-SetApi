@@ -22,7 +22,7 @@ public class StockController {
             @RequestParam String startDate,
             @RequestParam String adjustedPriceFlag) {
 
-        return stockService.findSingleStock(symbol, startDate, adjustedPriceFlag);
+        return stockService.findSingleStock(symbol, startDate,adjustedPriceFlag);
     }
 
     @GetMapping("/percentgainloss")
@@ -36,14 +36,14 @@ public class StockController {
         return stockService.findLossOrGain(symbol, startDate, endDate, adjustedPriceFlag);
     }
 
-    @GetMapping("/allstock")
-    public StockList[] getAllStock(
+    @GetMapping("/getHighDividend")
+    public StockList[] getHighDividend(
 
             @RequestParam String securityType,
             @RequestParam String date,
             @RequestParam String adjustedPriceFlag) {
 
-        return stockService.findAllStock(securityType, date, adjustedPriceFlag);
+        return stockService.highDividend(securityType, date, adjustedPriceFlag);
     }
 
 

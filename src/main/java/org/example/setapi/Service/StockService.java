@@ -14,11 +14,14 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.TextStyle;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.Locale;
 
 
 @Service
@@ -66,11 +69,40 @@ public class StockService {
 
     }
 
+    public String getCurrentWorkingDate() {
+
+        LocalDate currentDate = LocalDate.now();
+        DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
+
+        String dayOfWeekStr = dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault());
+
+        if (dayOfWeekStr.equals("Saturday") || dayOfWeekStr.equals("Sunday")) {
+
+            LocalDate getDate = LocalDate.now();
+            LocalDate getWorkingDate = getDate.minusDays(2);
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+            String workDate = getWorkingDate.format(formatter);
+
+            return workDate;
+        }
+
+        LocalDate getDate = LocalDate.now();
+        LocalDate getWorkingDate = getDate.minusDays(1);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        String workDate = getWorkingDate.format(formatter);
+
+        return workDate;
+    }
+
     // Find one particular stock's information.
     public SingleStock[] findSingleStock (String symbol, String startDate, String adjustedPriceFlag) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("api-key", apiKey);
+
+//        String startDate = getCurrentWorkingDate();
 
         String endpoint = firstEndpoint;
         String endpointParams = endpoint + "?symbol=" + symbol + "&startDate=" + startDate + "&adjustedPriceFlag=" + adjustedPriceFlag;
@@ -128,7 +160,8 @@ public class StockService {
         }
     }
 
-    public StockList[] findAllStock (String securityType, String date, String adjustedPriceFlag) {
+    // Find all high dividend stock.
+    public StockList[] highDividend(String securityType, String date, String adjustedPriceFlag) {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("api-key", apiKey);
@@ -163,5 +196,11 @@ public class StockService {
             return null;
         }
     }
+
+//    public StockList[] consistentHighDividend(String securityType, String dateThisYear, String dateLastYear,
+//                                              String dateLastTwoYear, String dateLastThreeYear, String dateLastFourYear, String adjustedPriceFlag) {
+//
+//
+//    }
 
 }
