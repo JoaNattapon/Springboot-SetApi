@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.setapi.Model.SingleStock;
 import org.example.setapi.Model.StockList;
+import org.example.setapi.Model.StockListFiveYear;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -14,13 +15,11 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpHeaders;
 
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Locale;
 
 
@@ -36,6 +35,51 @@ public class StockService {
     @Value("${second.endpoint}")
     private String secondEndpoint;
     private final RestTemplate templates = new RestTemplate();
+
+    private Object callApiGetSingleQuote ( String symbol,
+                                           String date,
+                                           String adjustedPriceFlag) {
+
+        String endPoint = this.firstEndpoint;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("api-key", apiKey);
+
+        String endpointParams = endPoint + "?symbol=" + symbol + "&startDate=" + date + "&adjustedPriceFlag=" + adjustedPriceFlag;
+
+        ResponseEntity<StockList[]> responseEntity = templates.exchange (
+
+                endpointParams,
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                StockList[].class
+        );
+
+        return responseEntity.getBody();
+    }
+
+    private <T> T[] callApiGetAllQuote ( String securityType,
+                                         String date,
+                                         String adjustedPriceFlag,
+                                         Class<T[]> responseType ) {
+
+        String endPoint = this.secondEndpoint;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("api-key", apiKey);
+
+        String endpointParams = endPoint + "?securityType=" + securityType + "&date=" + date + "&adjustedPriceFlag=" + adjustedPriceFlag;
+
+        ResponseEntity<T[]> responseEntity = templates.exchange (
+
+                endpointParams,
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                responseType
+        );
+
+        return responseEntity.getBody();
+    }
 
     private static float percentageGain(float one, float two) {
 
@@ -163,25 +207,12 @@ public class StockService {
     // Find all high dividend stock.
     public StockList[] highDividend(String securityType, String date, String adjustedPriceFlag) {
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("api-key", apiKey);
+        StockList[] apiResponse = callApiGetAllQuote(securityType, date, adjustedPriceFlag, StockList[].class);
 
-        String endpoint = secondEndpoint;
-        String endpointParams = endpoint + "?securityType=" + securityType + "&date=" + date + "&adjustedPriceFlag=" + adjustedPriceFlag;
-
-        ResponseEntity<StockList[]> responseEntity = templates.exchange(
-
-            endpointParams,
-            HttpMethod.GET,
-            new HttpEntity<>(headers),
-            StockList[].class
-        );
-
-        StockList[] apiResponse = responseEntity.getBody();
-
-        if (apiResponse != null){
+        if (apiResponse != null) {
 
             return Arrays.stream(apiResponse)
+
                     .filter(res -> res.getDividendYield() > 5.0)
                     .map(res -> {
                         StockList filteredStock = new StockList();
