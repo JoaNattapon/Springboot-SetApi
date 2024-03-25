@@ -19,7 +19,9 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 
@@ -79,6 +81,18 @@ public class StockService {
         );
 
         return responseEntity.getBody();
+    }
+
+    private List<Float> extractDividend(StockList[] apiResponse) {
+
+        List<Float> dividendYield = new ArrayList<>();
+
+        for (StockList stock : apiResponse) {
+
+            dividendYield.add(stock.getDividendYield());
+        }
+
+        return dividendYield;
     }
 
     private static float percentageGain(float one, float two) {
@@ -145,8 +159,6 @@ public class StockService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("api-key", apiKey);
-
-//        String startDate = getCurrentWorkingDate();
 
         String endpoint = firstEndpoint;
         String endpointParams = endpoint + "?symbol=" + symbol + "&startDate=" + startDate + "&adjustedPriceFlag=" + adjustedPriceFlag;
@@ -228,9 +240,43 @@ public class StockService {
         }
     }
 
-//    public StockList[] consistentHighDividend(String securityType, String dateThisYear, String dateLastYear,
-//                                              String dateLastTwoYear, String dateLastThreeYear, String dateLastFourYear, String adjustedPriceFlag) {
-//
+//    There are some issue with this method such as the symbol maybe changed. (Will come back later)
+    public StockListFiveYear[] dividendFiveYear(String securityType, String dateThisYear, String dateLastYear,
+                                        String dateLastTwoYear, String dateLastThreeYear, String dateLastFourYear,
+                                        String adjustedPriceFlag) {
+
+        StockList[] apiResponseThisYear = callApiGetAllQuote(securityType, dateThisYear, adjustedPriceFlag, StockList[].class);
+        StockList[] apiResponseLastYear = callApiGetAllQuote(securityType, dateLastYear, adjustedPriceFlag, StockList[].class);
+        StockList[] apiResponseThirdYear = callApiGetAllQuote(securityType, dateLastTwoYear, adjustedPriceFlag, StockList[].class);
+        StockList[] apiResponseFourthYear = callApiGetAllQuote(securityType, dateLastThreeYear, adjustedPriceFlag, StockList[].class);
+        StockList[] apiResponseFifthYear = callApiGetAllQuote(securityType, dateLastFourYear, adjustedPriceFlag, StockList[].class);
+
+        List<Float> dividendThisYear = extractDividend(apiResponseThisYear);
+        List<Float> dividendLastYear = extractDividend(apiResponseLastYear);
+        List<Float> dividendThirdYear = extractDividend(apiResponseThirdYear);
+        List<Float> dividendFourthYear = extractDividend(apiResponseFourthYear);
+        List<Float> dividendFifthYear = extractDividend(apiResponseFifthYear);
+
+        StockListFiveYear[] response = new StockListFiveYear[apiResponseThisYear.length];
+
+        for (int i = 0; i < response.length; i++) {
+
+            response[i] = new StockListFiveYear();
+            response[i].setSymbol(apiResponseThisYear[i].getSymbol());
+
+            List<Float> dividendList = new ArrayList<>();
+
+            dividendList.add(dividendThisYear.get(i));
+            dividendList.add(dividendLastYear.get(i));
+            dividendList.add(dividendThirdYear.get(i));
+            dividendList.add(dividendFourthYear.get(i));
+            dividendList.add(dividendFifthYear.get(i));
+            response[i].setDividendLastFiveYear(dividendList);
+        }
+        return response;
+    }
+
+//    public StockMostGainDaily[] topGainers() {
 //
 //    }
 

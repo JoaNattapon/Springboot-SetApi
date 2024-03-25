@@ -2,6 +2,7 @@ package org.example.setapi.Controller;
 
 import org.example.setapi.Model.SingleStock;
 import org.example.setapi.Model.StockList;
+import org.example.setapi.Model.StockListFiveYear;
 import org.example.setapi.Service.StockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,5 +47,19 @@ public class StockController {
         return stockService.highDividend(securityType, date, adjustedPriceFlag);
     }
 
+    @GetMapping("/getHihgDividendFiveYear")
+    public StockListFiveYear[] getHighDividendFiveYear(
 
+            @RequestParam String securityType,
+            @RequestParam String dateThisYear,
+            @RequestParam String dateLastYear,
+            @RequestParam String dateLastTwoYear,
+            @RequestParam String dateLastThreeYear,
+            @RequestParam String dateLastFourYear,
+            @RequestParam String adjustPriceFlag) {
+
+        return stockService.dividendFiveYear(securityType, dateThisYear, dateLastYear,
+                                            dateLastTwoYear, dateLastThreeYear, dateLastFourYear,
+                                            adjustPriceFlag);
+    }
 }
