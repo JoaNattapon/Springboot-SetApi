@@ -3,11 +3,13 @@ package org.example.setapi.Controller;
 import org.example.setapi.Model.SingleStock;
 import org.example.setapi.Model.StockList;
 import org.example.setapi.Model.StockListFiveYear;
+import org.example.setapi.Model.WishListStock;
+import org.example.setapi.Service.StockPersistanceService;
 import org.example.setapi.Service.StockService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 
 @RestController
@@ -15,6 +17,9 @@ public class StockController {
 
     @Autowired
     private StockService stockService;
+
+    @Autowired
+    private StockPersistanceService stockPersistanceService;
 
     @GetMapping("/singlestock")
     public SingleStock[] getSingleStock(
@@ -61,5 +66,13 @@ public class StockController {
         return stockService.dividendFiveYear(securityType, dateThisYear, dateLastYear,
                                             dateLastTwoYear, dateLastThreeYear, dateLastFourYear,
                                             adjustPriceFlag);
+    }
+
+    @PostMapping("/addStock")
+    public ResponseEntity<WishListStock> addStock(@RequestBody WishListStock wishListStock) {
+
+        WishListStock createStock = stockPersistanceService.addStock(wishListStock);
+
+        return new ResponseEntity<>(createStock, HttpStatus.CREATED);
     }
 }
