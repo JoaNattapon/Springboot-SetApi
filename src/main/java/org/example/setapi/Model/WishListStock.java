@@ -1,10 +1,11 @@
 package org.example.setapi.Model;
 
+
 public class WishListStock {
 
     private Long id;
     private String symbol;
-    private String business_describe;
+    private String business_overview;
     private int netProfit_Quarter_ML;
     private Situation situation;
 
@@ -25,11 +26,11 @@ public class WishListStock {
     }
 
     public String getBusiness_describe() {
-        return business_describe;
+        return business_overview;
     }
 
-    public void setBusiness_describe(String business_describe) {
-        this.business_describe = business_describe;
+    public void setBusiness_describe(String business_overview) {
+        this.business_overview = business_overview;
     }
 
     public int getNetProfit_Quarter_ML() {
