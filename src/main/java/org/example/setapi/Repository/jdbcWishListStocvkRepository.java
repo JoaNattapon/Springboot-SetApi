@@ -1,22 +1,28 @@
 package org.example.setapi.Repository;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.setapi.Model.NetProfit;
 import org.example.setapi.Model.Situation;
 import org.example.setapi.Model.WishListStock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 @Repository
-public class jdbcWishListStocvkRepository implements WishListStockRepository {
+public class jdbcWishListStockRepository implements WishListStockRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public jdbcWishListStocvkRepository(JdbcTemplate jdbcTemplate) {
+    public jdbcWishListStockRepository(JdbcTemplate jdbcTemplate) {
 
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -26,23 +32,7 @@ public class jdbcWishListStocvkRepository implements WishListStockRepository {
 
         String sql = "SELECT * FROM wishliststock";
 
-        return jdbcTemplate.query(sql, ((rs, rowNum) -> mapRowToWishListStock(rs)));
-    }
-
-    private WishListStock mapRowToWishListStock(ResultSet rs) throws SQLException {
-
-        WishListStock wishListStock = new WishListStock();
-        wishListStock.setId(rs.getLong("id"));
-        wishListStock.setSymbol(rs.getString("symbol"));
-        wishListStock.setBusiness_describe(rs.getString("business_overview"));
-        wishListStock.setNetProfit_Quarter_ML(rs.getInt("netprofit_quarter_ml"));
-
-        String situationString = rs.getString("situation");
-        if (situationString != null) {
-            wishListStock.setSituation(Situation.valueOf(situationString));
-        }
-
-        return wishListStock;
+        return jdbcTemplate.query(sql, new WishListStockRowMapper());
     }
 
     @Override
@@ -53,10 +43,49 @@ public class jdbcWishListStocvkRepository implements WishListStockRepository {
             throw new InvalidEntityStateException(wishListStock.getSymbol() + " already in the wishlist.");
         }
 
-        jdbcTemplate.update("INSERT INTO wishliststock (symbol, business_overview, netprofit_quarter_ml, situation) VALUES (?, ?, ?, ?)",
-                wishListStock.getSymbol(), wishListStock.getBusiness_describe(), wishListStock.getNetProfit_Quarter_ML(), wishListStock.getSituation().toString());
+        NetProfit netProfit = wishListStock.getNetProfit();
+        Long netProfitId = insertNetProfit(netProfit);
+
+        jdbcTemplate.update("INSERT INTO wishliststock (symbol, business_overview, net_profit_id, situation) VALUES (?, ?, ?, ?)",
+                wishListStock.getSymbol(), wishListStock.getBusiness_describe(), netProfitId, wishListStock.getSituation().toString());
 
         return  wishListStock;
+    }
+
+    private Long insertNetProfit(NetProfit netProfit) {
+
+        jdbcTemplate.update("INSERT INTO netprofit (quarter, millions, year) VALUES (?, ?, ?)",
+                netProfit.getQuarter(), netProfit.getMillions(), netProfit.getYear());
+
+        return jdbcTemplate.queryForObject("SELECT last_insert_id()", Long.class);
+    }
+
+
+    private class WishListStockRowMapper implements RowMapper<WishListStock> {
+
+        @Override
+        public WishListStock mapRow(ResultSet rs, int rowNum) throws SQLException {
+
+            WishListStock wishListStock = new WishListStock();
+            wishListStock.setId(rs.getLong("id"));
+            wishListStock.setSymbol(rs.getString("symbol"));
+            wishListStock.setBusiness_describe(rs.getString("business_overview"));
+
+            NetProfit netProfit = new NetProfit();
+            netProfit.setId(rs.getLong("id"));
+            netProfit.setQuarter(rs.getInt("quarter"));
+            netProfit.setMillions(rs.getFloat("millions"));
+            netProfit.setYear(rs.getInt("year"));
+
+            wishListStock.setNetProfit(netProfit);
+
+            String situationString = rs.getString("situation");
+            if (situationString != null) {
+                wishListStock.setSituation(Situation.valueOf(situationString));
+            }
+
+            return wishListStock;
+        }
     }
 
     @Override
@@ -64,4 +93,6 @@ public class jdbcWishListStocvkRepository implements WishListStockRepository {
 
         jdbcTemplate.update("DELETE FROM wishliststock WHERE symbol = ?", symbol);
     }
+
+
 }

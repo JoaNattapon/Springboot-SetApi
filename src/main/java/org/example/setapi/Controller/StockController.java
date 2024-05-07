@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 
 @RestController
 public class StockController {
@@ -74,5 +76,11 @@ public class StockController {
         WishListStock createStock = stockPersistanceService.addStock(wishListStock);
 
         return new ResponseEntity<>(createStock, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/getAllMyWishList")
+    public List<WishListStock> getAllWishList() {
+
+        return stockPersistanceService.getAll();
     }
 }

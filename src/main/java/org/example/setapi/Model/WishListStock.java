@@ -1,13 +1,24 @@
 package org.example.setapi.Model;
 
 
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+
+import java.util.Map;
+
 public class WishListStock {
 
     private Long id;
     private String symbol;
     private String business_overview;
-    private int netProfit_Quarter_ML;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "net_profit_id", referencedColumnName = "id")
+    private NetProfit netProfit;
     private Situation situation;
+
+
 
     public Long getId() {
         return id;
@@ -33,12 +44,12 @@ public class WishListStock {
         this.business_overview = business_overview;
     }
 
-    public int getNetProfit_Quarter_ML() {
-        return netProfit_Quarter_ML;
+    public NetProfit getNetProfit() {
+        return netProfit;
     }
 
-    public void setNetProfit_Quarter_ML(int netProfit_Quarter_ML) {
-        this.netProfit_Quarter_ML = netProfit_Quarter_ML;
+    public void setNetProfit(NetProfit netProfit) {
+        this.netProfit = netProfit;
     }
 
     public Situation getSituation() {
